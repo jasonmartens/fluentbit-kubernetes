@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: datadog-log-dumper
+  labels:
+    app: datadog-log-dumper
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: datadog-log-dumper
+  template:
+    metadata:
+      labels:
+        app: datadog-log-dumper
+    spec:
+      containers:
+        - name: datadog-log-dumper
+          image: datadog-log-dumper
+          imagePullPolicy: Never # Because it's locally built
