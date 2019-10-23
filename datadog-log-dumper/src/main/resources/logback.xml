@@ -1,30 +1,35 @@
 <configuration>
-<appender name="STDOUT-JSON" class="ch.qos.logback.core.ConsoleAppender">
-  <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
-    <providers>
-      <timestamp>
-        <timeZone>UTC</timeZone>
-      </timestamp>
-      <pattern>
+  <appender name="STDOUT-JSON" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+      <providers>
+        <timestamp>
+          <timeZone>UTC</timeZone>
+        </timestamp>
         <pattern>
-          {
-          "level": "%level",
-          "version": "%X{version}",
-          "message": "%message",
-          "thread": "%thread",
-          "logger": "%logger{300}"
-          }
+          <pattern>
+            {
+            "level": "%level",
+            "version": "%X{version}",
+            "message": "%message",
+            "thread": "%thread",
+            "logger": "%logger{300}"
+            }
+          </pattern>
         </pattern>
-      </pattern>
-      <stackTrace />
-    </providers>
-  </encoder>
-</appender>
-<!-- Async wrappers -->
-<appender name="STDOUT-ASYNC" class="ch.qos.logback.classic.AsyncAppender">
-  <appender-ref ref="STDOUT-JSON" />
-</appender>
-<root level="${ROOT_LOG_LEVEL:-DEBUG}">
-  <appender-ref ref="STDOUT-ASYNC" />
-</root>
+        <stackTrace/>
+      </providers>
+    </encoder>
+  </appender>
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%-5relative %-5level %logger{35} - %msg%n</pattern>
+    </encoder>
+  </appender>
+  <!-- Async wrappers -->
+  <appender name="STDOUT-ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+    <appender-ref ref="STDOUT"/>
+  </appender>
+  <root level="${ROOT_LOG_LEVEL:-DEBUG}">
+    <appender-ref ref="STDOUT-ASYNC"/>
+  </root>
 </configuration>

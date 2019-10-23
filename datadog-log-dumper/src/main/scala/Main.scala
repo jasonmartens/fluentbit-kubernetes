@@ -1,32 +1,42 @@
-import akka.actor.ActorSystem
-import akka.kafka.{ConsumerSettings, Subscriptions}
-import akka.kafka.scaladsl._
-import akka.stream.{ActorMaterializer, Materializer}
-import akka.Done
-import akka.stream.scaladsl.Sink
-import org.apache.kafka.clients.consumer.ConsumerConfig
-import org.apache.kafka.common.serialization.StringDeserializer
-
-import scala.concurrent.ExecutionContext
+import zio._
+import zio.duration._
+import zio.kafka.client._
+import zio.ZManaged
+import zio.blocking.Blocking
+import zio.clock.Clock
+import zio.kafka.client.{ Consumer, ConsumerSettings }
+import zio.kafka.client.serde._
+import zio.console.putStrLn
 
 object Main extends App {
-  implicit val system: ActorSystem = ActorSystem()
-  implicit val mat: Materializer = ActorMaterializer()
-  implicit val ec: ExecutionContext = system.dispatcher
-  val config = system.settings.config.getConfig("logging-kafka-consumer")
-  val consumerSettings = ConsumerSettings(config, new StringDeserializer, new StringDeserializer)
-    .withProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true")
-    .withProperty(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "5000")
-    .withGroupId("group1")
+  val consumerSettings: ConsumerSettings =
+    ConsumerSettings(
+      bootstrapServers          = List("localhost:9094"),
+      groupId                   = "group",
+      clientId                  = "client",
+      closeTimeout              = 30.seconds,
+      extraDriverSettings       = Map(),
+      pollInterval              = 250.millis,
+      pollTimeout               = 50.millis,
+      perPartitionChunkPrefetch = 2
+    )
+  val consumer: ZManaged[Clock with Blocking, Throwable, Consumer] =
+    Consumer.make(consumerSettings)
 
-  println(s"Starting kafka consumer from ${config.toString}...")
-  Consumer
-    .committableSource(consumerSettings, Subscriptions.topics("logs"))
-    .runWith(Sink.foreach{ msg => println(s"received: ${msg.toString()}")})
-
-  while (true) {
-    Thread.sleep(100)
-  }
-  println("Server exiting...")
-
+  override def run(args: List[String]): ZIO[zio.ZEnv, Nothing, Int] = {
+    consumer.use { c =>
+      c.subscribeAnd(Subscription.Topics(Set("logs")))
+        .plainStream(Serde.string, Serde.string)
+        .flattenChunks
+        .tap(cr => putStrLn(s"key: ${cr.record.key}, value: ${cr.record.value}"))
+        .map(_.offset)
+        .aggregate(Consumer.offsetBatches)
+        .mapM(_.commit)
+        .runDrain
+      ZIO.unit
+    }
+  }.foldM (
+    failure = err => putStrLn(s"execution failed with: $err") *> ZIO.succeed(1),
+    success = _ => ZIO.succeed(0)
+  )
 }
