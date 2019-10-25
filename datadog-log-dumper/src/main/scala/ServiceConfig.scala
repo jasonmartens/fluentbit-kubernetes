@@ -5,11 +5,16 @@ object ServiceConfig {
 
   final case class Config(
     kafkaConfig: KafkaConfig,
+    datadogConfig: DatadogConfig
   )
 
   final case class KafkaConfig(
     port: Int,
     bootstrapHost: String,
+  )
+
+  final case class DatadogConfig(
+    apiKey: String
   )
 
   def kafkaConsumerSettings(c: KafkaConfig): ConsumerSettings = {

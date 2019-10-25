@@ -18,3 +18,10 @@ spec:
         - name: datadog-log-dumper
           image: datadog-log-dumper
           imagePullPolicy: Never # Because it's locally built
+          env:
+            - name: DATADOG_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: datadog-api-key
+                  key: secret
+
