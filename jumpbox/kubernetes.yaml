@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jumpbox
+  labels:
+    app: jumpbox
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jumpbox
+  template:
+    metadata:
+      labels:
+        app: jumpbox
+    spec:
+      containers:
+        - name: jumpbox
+          image: jumpbox
+          imagePullPolicy: Never # Because it's locally built
+          ports:
+            - name: ssh-port
+              containerPort: 22
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jumpbox
+spec:
+  selector:
+    app: jumpbox
+  ports:
+    - protocol: TCP
+      port: 2222
+      targetPort: 22
+  type: NodePort
