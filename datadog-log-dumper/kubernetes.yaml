@@ -24,4 +24,10 @@ spec:
                 secretKeyRef:
                   name: datadog-api-key
                   key: secret
-
+          ports:
+            - name: jdb-port
+              containerPort: 8091
+              protocol: TCP
+            - name: jmx-port
+              containerPort: 8092
+              protocol: TCP
