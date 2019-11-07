@@ -3,8 +3,8 @@ lazy val distProject = project
     .enablePlugins(JavaAgent, JavaAppPackaging)
     .settings(
       libraryDependencies ++= Seq(
-        "dev.zio" %% "zio-streams" % "1.0.0-RC15",
-        "dev.zio" %% "zio-kafka"   % "0.3.0",
+        "dev.zio" %% "zio-streams" % "1.0.0-RC16",
+        "dev.zio" %% "zio-kafka"   % "0.3.2",
         "com.github.pureconfig" %% "pureconfig" % "0.12.1",
         "com.softwaremill.sttp.client" %% "core" % "2.0.0-M7",
         "com.softwaremill.sttp.client" %% "async-http-client-backend-zio" % "2.0.0-M7",
@@ -17,9 +17,3 @@ lazy val distProject = project
       name := "datadog-log-dumper",
       version := "0.1"
     )
-
-
-
-
-
-
